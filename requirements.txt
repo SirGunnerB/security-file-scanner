@@ -1,0 +1,4 @@
+tkinter>=8.6
+ttkthemes>=3.2.2
+pygments>=2.15.0
+pathlib>=1.0.1 
