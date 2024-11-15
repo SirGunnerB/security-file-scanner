@@ -10,4 +10,4 @@ class SyntaxHighlighter:
             formatter = HtmlFormatter(style='monokai')
             return highlight(code, lexer, formatter)
         except:
-            return code 
+            return code
