@@ -23,7 +23,11 @@ wheels/
 # Virtual Environment
 venv/
 ENV/
-env/
+
+# PyInstaller
+dist/
+build/
+*.spec
 
 # IDE
 .idea/
@@ -31,6 +35,9 @@ env/
 *.swp
 *.swo
 
-# Operating System
-.DS_Store
+# Test files
+test_files/
+
+# Windows
 Thumbs.db
+Desktop.ini
