@@ -185,3 +185,13 @@ If you encounter any issues or have questions:
 ---
 
 **Note:** This tool is continuously evolving. Check back for updates and new features.
+
+## ?? Screenshots
+
+*Screenshots coming soon! The application includes:*
+
+- Dark-themed main interface
+- Real-time scanning progress
+- Syntax-highlighted results
+- Report generation dialog
+
