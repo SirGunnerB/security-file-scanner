@@ -1,2 +1,7 @@
-pyinstaller
-pygments
+pyinstaller>=6.11.1
+pygments>=2.18.0
+rich>=10.0.0
+typing-extensions>=4.0.0
+PyQt6>=6.4.0
+python-magic>=0.4.27
+qt-material>=2.12

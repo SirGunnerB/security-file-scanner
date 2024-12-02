@@ -1,7 +1,7 @@
 # Python
 __pycache__/
 *.py[cod]
-*.class
+*$py.class
 *.so
 .Python
 build/
@@ -22,6 +22,7 @@ wheels/
 
 # Virtual Environment
 venv/
+env/
 ENV/
 
 # PyInstaller
@@ -35,9 +36,16 @@ build/
 *.swp
 *.swo
 
-# Test files
-test_files/
+# Logs and databases
+*.log
+*.sqlite3
+security_scan.log
 
-# Windows
+# OS-specific
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
-Desktop.ini
