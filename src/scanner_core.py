@@ -8,7 +8,6 @@ from datetime import datetime
 import logging
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TimeElapsedColumn
-from rich.syntax import Syntax
 import magic  # for file type detection
 import ast
 from concurrent.futures import ThreadPoolExecutor
@@ -40,12 +39,11 @@ class SecurityPattern:
         self.severity = severity
 
 class SecurityScanner:
-    MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
-    BINARY_EXTENSIONS = {'.exe', '.dll', '.so', '.dylib', '.bin', '.pyc'}
-    TEXT_EXTENSIONS = {'.py', '.js', '.php', '.java', '.cs', '.go', '.rb', '.pl', '.sh', 
-                      '.txt', '.html', '.xml', '.json', '.yml', '.yaml', '.ini', '.cfg'}
-
-    def __init__(self):
+    def __init__(self, max_file_size: int = 10 * 1024 * 1024):  # 10MB default limit
+        self.MAX_FILE_SIZE = max_file_size
+        self.BINARY_EXTENSIONS = {'.exe', '.dll', '.so', '.dylib', '.bin', '.pyc'}
+        self.TEXT_EXTENSIONS = {'.py', '.js', '.php', '.java', '.cs', '.go', '.rb', '.pl', '.sh', 
+                                '.txt', '.html', '.xml', '.json', '.yml', '.yaml', '.ini', '.cfg'}
         self.console = Console()
         self.setup_logging()
         self._file_hashes: Dict[str, str] = {}
@@ -129,7 +127,8 @@ class SecurityScanner:
         """Detect file type using magic."""
         try:
             return magic.from_file(str(file_path))
-        except:
+        except Exception as e:
+            logging.error(f"Error detecting file type for {file_path}: {str(e)}")
             return "unknown"
 
     def get_context(self, content: str, line_number: int, context_lines: int = 2) -> str:

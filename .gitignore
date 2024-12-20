@@ -24,6 +24,7 @@ wheels/
 venv/
 env/
 ENV/
+*.env
 
 # PyInstaller
 dist/
@@ -35,6 +36,9 @@ build/
 .vscode/
 *.swp
 *.swo
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
 
 # Logs and databases
 *.log
@@ -49,3 +53,10 @@ security_scan.log
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Test artifacts
+*.cover
+.coverage
+nosetests.xml
+test-results/
+*.pytest_cache/

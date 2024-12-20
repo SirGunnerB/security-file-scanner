@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from enum import Enum
 import hashlib
 import ast
+import json
 
 class Severity(Enum):
     LOW = "LOW"
@@ -27,9 +28,10 @@ class ScanResult:
     file_hash: str
 
 class ScanEngine:
-    def __init__(self, max_file_size: int = 10_000_000):  # 10MB default limit
+    def __init__(self, max_file_size: int = 10_000_000, patterns_file: Optional[str] = None):  # 10MB default limit
         self.max_file_size = max_file_size
         self.file_hashes = {}  # Cache of file hashes
+        self.scan_patterns = self.load_scan_patterns(patterns_file) if patterns_file else SCAN_PATTERNS
         self.setup_logging()
 
     @staticmethod
@@ -42,6 +44,12 @@ class ScanEngine:
                 logging.StreamHandler()
             ]
         )
+
+    @staticmethod
+    def load_scan_patterns(file_path: str) -> Dict[str, List[Tuple[str, str, Severity]]]:
+        """Load scan patterns from a JSON file."""
+        with open(file_path, 'r') as f:
+            return json.load(f)
 
     def get_file_hash(self, file_path: Path) -> str:
         """Calculate and cache file hash."""
@@ -76,8 +84,8 @@ class ScanEngine:
                 if isinstance(node, ast.Str) and isinstance(node.parent, (ast.Expr, ast.Assign)):
                     if node.lineno <= position <= node.end_lineno:
                         return True
-        except:
-            return False
+        except Exception as e:
+            logging.error(f"Error checking docstring: {str(e)}")
         return False
 
     def scan_file(self, file_path: Path) -> List[ScanResult]:
@@ -94,7 +102,7 @@ class ScanEngine:
             results = []
             file_hash = self.get_file_hash(file_path)
 
-            for category, patterns in SCAN_PATTERNS.items():
+            for category, patterns in self.scan_patterns.items():
                 for pattern, description, severity in patterns:
                     matches = re.finditer(pattern, content)
                     for match in matches:
@@ -116,6 +124,7 @@ class ScanEngine:
                             file_hash=file_hash
                         ))
 
+            logging.info(f"Scanned {file_path}: {len(results)} issues found.")
             return results
 
         except Exception as e:

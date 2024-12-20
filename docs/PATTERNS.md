@@ -1,6 +1,230 @@
-# Security Pattern Detection
+# Security Pattern Detection Guide
 
-## ?? Detection Categories
+## Overview
+
+This guide documents security patterns detected by the scanner, their risk levels, and detection strategies.
+
+## Risk Classification Matrix
+
+| Risk Level | CVSS Score | Impact | Response Time |
+|------------|------------|---------|---------------|
+| Critical   | 9.0-10.0  | System compromise | Immediate |
+| High       | 7.0-8.9   | Data exposure | Within 24h |
+| Medium     | 4.0-6.9   | Limited impact | Within 72h |
+| Low        | 0.1-3.9   | Minimal risk | Monitored |
+
+## Detection Patterns
+
+### 1. Code Execution Vectors 🔴
+
+```python
+# Critical Risk Patterns
+CODE_EXEC_PATTERNS = {
+    'eval': {
+        'pattern': r'eval\s*\(',
+        'risk': 'Critical',
+        'mitigation': 'Use ast.literal_eval() for safe evaluation',
+        'example': 'eval("print(\'hello\')")',
+    },
+    'exec': {
+        'pattern': r'exec\s*\(',
+        'risk': 'Critical',
+        'mitigation': 'Avoid dynamic code execution',
+        'example': 'exec("import os")',
+    }
+}
+```
+
+### 2. System Command Execution 🔴
+
+```python
+# High Risk Patterns
+SYSTEM_CMD_PATTERNS = {
+    'os.system': {
+        'pattern': r'os\.system\s*\(',
+        'risk': 'High',
+        'mitigation': 'Use subprocess.run with shell=False',
+        'example': 'os.system("rm file")',
+    },
+    'subprocess_shell': {
+        'pattern': r'subprocess\..*shell\s*=\s*True',
+        'risk': 'High',
+        'mitigation': 'Avoid shell=True, use command lists',
+        'example': 'subprocess.run(cmd, shell=True)',
+    }
+}
+```
+
+### 3. Network Operations 🟡
+
+```python
+# Medium Risk Patterns
+NETWORK_PATTERNS = {
+    'socket': {
+        'pattern': r'socket\.connect\s*\(',
+        'risk': 'Medium',
+        'mitigation': 'Use application-layer protocols',
+        'validation': r'^(localhost|127\.0\.0\.1)$',
+    },
+    'requests': {
+        'pattern': r'requests\.(get|post|put|delete)',
+        'risk': 'Medium',
+        'mitigation': 'Validate URLs, use HTTPS',
+        'validation': r'^https://',
+    }
+}
+```
+
+### 4. File Operations 🟡
+
+```python
+# Medium Risk Patterns
+FILE_OP_PATTERNS = {
+    'write': {
+        'pattern': r'open\s*\([^)]+,\s*[\'"]w[\'"]\)',
+        'risk': 'Medium',
+        'mitigation': 'Validate paths, use safe directories',
+        'validation': r'^[a-zA-Z0-9_\-./]+$',
+    }
+}
+```
+
+### 5. Data Encoding/Encryption 🟢
+
+```python
+# Low Risk Patterns
+CRYPTO_PATTERNS = {
+    'base64': {
+        'pattern': r'base64\.(encode|decode)',
+        'risk': 'Low',
+        'audit': 'Check for sensitive data encoding',
+    }
+}
+```
+
+## Pattern Validation Rules
+
+### 1. Path Validation
+```regex
+# Safe Path Pattern
+^(?!.*\.\.|.*\/\.|.*\\\.)[a-zA-Z0-9_\-./\\]+$
+```
+
+### 2. URL Validation
+```regex
+# Safe URL Pattern
+^https:\/\/(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(?:\/[^\s]*)?$
+```
+
+### 3. Command Validation
+```regex
+# Safe Command Pattern
+^[a-zA-Z0-9_\-. ]+$
+```
+
+## Context-Aware Detection
+
+### 1. Function Context
+```python
+def is_safe_context(code_block):
+    """
+    Check if pattern appears in safe context
+    Example: test_eval() vs production_eval()
+    """
+    SAFE_CONTEXTS = [
+        r'test_',
+        r'mock_',
+        r'dummy_'
+    ]
+```
+
+### 2. Environment Context
+```python
+def check_environment():
+    """
+    Adjust risk levels based on environment
+    """
+    ENV_RISK_MODIFIERS = {
+        'production': 1.5,  # Increase risk
+        'testing': 0.5,    # Decrease risk
+        'development': 0.3  # Minimal risk
+    }
+```
+
+## False Positive Mitigation
+
+### 1. Allowlist Patterns
+```yaml
+allowlist:
+  - pattern: "eval(json.loads"
+    reason: "Safe JSON parsing"
+  - pattern: "subprocess.run(['git']"
+    reason: "Standard git operations"
+```
+
+### 2. Context Exclusions
+```yaml
+exclude_contexts:
+  - "*/tests/*"
+  - "*/examples/*"
+  - "*/vendor/*"
+```
+
+## Best Practices
+
+1. **Pattern Updates**
+   - Regular expression maintenance
+   - Community feedback integration
+   - Version control for patterns
+
+2. **Scanning Strategy**
+   ```python
+   SCAN_STRATEGY = {
+       'max_file_size': 1024 * 1024,  # 1MB
+       'recursive_depth': 5,
+       'follow_symlinks': False,
+       'parallel_scans': True
+   }
+   ```
+
+3. **Response Actions**
+   ```python
+   ACTIONS = {
+       'Critical': lambda: notify_security_team(),
+       'High': lambda: create_jira_ticket(),
+       'Medium': lambda: log_finding(),
+       'Low': lambda: update_metrics()
+   }
+   ```
+
+## Limitations
+
+1. **Detection Limitations**
+   - Static analysis only
+   - No runtime behavior analysis
+   - Pattern bypass possibilities
+
+2. **Performance Considerations**
+   - Large file handling
+   - Regular expression optimization
+   - Memory constraints
+
+## Updates and Maintenance
+
+1. **Pattern Updates**
+   ```bash
+   # Update patterns
+   ./update_patterns.sh
+   
+   # Verify patterns
+   python -m pytest tests/patterns/
+   ```
+
+2. **Version Control**
+   ```bash
+   # Tag pattern updates
+   git tag -a "patterns-v1.2.3" -m "Updated crypto patterns"
+   ```
 
 ### 1. Code Execution Patterns
 | Pattern | Description | Risk Level | Example |
@@ -73,14 +297,12 @@
 | `cookielib` | Cookie access | Medium | `cookielib.CookieJar()` |
 | `keylogger` | Keystroke logging | High | `keyboard.on_press()` |
 
-## ?? Risk Levels
-
+## Risk Levels
 - **High**: Potentially dangerous operations that could harm the system
 - **Medium**: Operations that might be legitimate but require attention
 - **Low**: Common operations that rarely indicate malicious intent
 
-## ?? Notes
-
+## Notes
 1. False Positives:
    - Some patterns may be legitimate in certain contexts
    - Always verify findings manually

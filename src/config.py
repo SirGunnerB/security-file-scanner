@@ -1,4 +1,19 @@
-SCAN_PATTERNS = {
+"""
+Configuration settings for the Security File Scanner.
+
+This module contains scan patterns, UI settings, and file extensions
+used by the scanner. It is designed to be easily extensible and maintainable.
+"""
+
+from typing import Dict, List, Tuple
+
+# Type aliases for better readability
+ScanPattern = Tuple[str, str]
+ScanPatterns = Dict[str, List[ScanPattern]]
+TextColors = Dict[str, str]
+
+# Scan patterns for detecting potentially malicious code
+SCAN_PATTERNS: ScanPatterns = {
     'code_execution': [
         (r'eval\s*\(.*\)', 'Potential arbitrary code execution'),
         (r'exec\s*\(.*\)', 'Potential arbitrary code execution'),
@@ -30,18 +45,32 @@ SCAN_PATTERNS = {
     ]
 }
 
-UI_SETTINGS = {
-    'window_size': '1200x800',
-    'theme': 'arc',
-    'syntax_theme': 'monokai',
+# User Interface settings for the scanner
+UI_SETTINGS: Dict[str, any] = {
+    'window_size': '1200x800',  # Default window size
+    'theme': 'arc',              # Default theme
+    'syntax_theme': 'monokai',   # Syntax highlighting theme
     'text_colors': {
-        'warning': '#ff6b6b',
-        'code': '#61afef',
-        'info': '#98c379'
+        'warning': '#ff6b6b',    # Color for warnings
+        'code': '#61afef',       # Color for code
+        'info': '#98c379'        # Color for informational messages
     }
 }
 
-FILE_EXTENSIONS = [
+# Supported file extensions for scanning
+FILE_EXTENSIONS: List[str] = [
     '.py', '.js', '.lua', '.dll', '.exe', 
     '.jar', '.json', '.xml', '.cfg', '.ini'
 ]
+
+def get_supported_extensions() -> List[str]:
+    """Return a list of supported file extensions for scanning."""
+    return FILE_EXTENSIONS
+
+def get_ui_settings() -> Dict[str, any]:
+    """Return the UI settings for the scanner."""
+    return UI_SETTINGS
+
+def get_scan_patterns() -> ScanPatterns:
+    """Return the scan patterns for detecting malicious code."""
+    return SCAN_PATTERNS

@@ -1,7 +1,13 @@
-pyinstaller>=6.11.1
-pygments>=2.18.0
-rich>=10.0.0
-typing-extensions>=4.0.0
-PyQt6>=6.4.0
-python-magic>=0.4.27
-qt-material>=2.12
+# Core dependencies
+pyinstaller==6.11.1          # For packaging the application into standalone executables
+pygments==2.18.0              # For syntax highlighting
+rich==10.0.0                  # For rich text console output
+typing-extensions>=3.7.4,<4.0.0  # For type hinting support (compatible with rich)
+PyQt6==6.4.0                  # For the GUI interface
+python-magic==0.4.27          # For file type detection
+qt-material==2.12             # For applying material design styles to PyQt6
+
+# Optional dependencies
+# Uncomment the following lines if you need these packages
+# pytest==7.0.0                # For running tests
+# coverage==6.0.0              # For measuring code coverage

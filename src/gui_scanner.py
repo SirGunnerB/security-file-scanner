@@ -1,18 +1,16 @@
 import sys
 import os
 from pathlib import Path
-from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
-                           QHBoxLayout, QPushButton, QLabel, QFileDialog, 
-                           QTreeWidget, QTreeWidgetItem, QProgressBar, 
-                           QTextEdit, QTabWidget, QSpinBox, QComboBox)
+from PyQt6.QtWidgets import (
+    QApplication, QMainWindow, QWidget, QVBoxLayout, 
+    QHBoxLayout, QPushButton, QLabel, QFileDialog, 
+    QTreeWidget, QTreeWidgetItem, QProgressBar, 
+    QTextEdit, QTabWidget, QComboBox, QMessageBox, QLineEdit, QDialog, QFormLayout
+)
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer
-from PyQt6.QtGui import QColor, QPalette, QFont, QIcon
+from PyQt6.QtGui import QColor, QFont
 from scanner_core import SecurityScanner, Severity
 from qt_material import apply_stylesheet
-import threading
-from datetime import datetime
-from rich.console import Console
-import io
 
 class ScanWorker(QThread):
     progress = pyqtSignal(int)
@@ -68,6 +66,12 @@ class SecurityScannerGUI(QMainWindow):
         self.scan_btn.setEnabled(False)
         control_panel.addWidget(self.scan_btn)
         
+        # Export button
+        self.export_btn = QPushButton("Export Results")
+        self.export_btn.clicked.connect(self.export_results)
+        self.export_btn.setEnabled(False)
+        control_panel.addWidget(self.export_btn)
+        
         layout.addLayout(control_panel)
         
         # Progress bar
@@ -104,6 +108,14 @@ class SecurityScannerGUI(QMainWindow):
         self.severity_filter.currentTextChanged.connect(self.filter_results)
         filters_layout.addWidget(severity_label)
         filters_layout.addWidget(self.severity_filter)
+        
+        # File type filter
+        file_type_label = QLabel("File Type:")
+        self.file_type_filter = QComboBox()
+        self.file_type_filter.addItems(["All", ".py", ".js", ".php", ".rb", ".java", ".cs", ".go"])
+        self.file_type_filter.currentTextChanged.connect(self.filter_results)
+        filters_layout.addWidget(file_type_label)
+        filters_layout.addWidget(self.file_type_filter)
         
         details_layout.addLayout(filters_layout)
         
@@ -152,6 +164,7 @@ class SecurityScannerGUI(QMainWindow):
             return
             
         self.scan_btn.setEnabled(False)
+        self.export_btn.setEnabled(False)
         self.progress_bar.setValue(0)
         self.status_label.setText("Scanning...")
         self.results_tree.clear()
@@ -159,8 +172,12 @@ class SecurityScannerGUI(QMainWindow):
         self.summary_text.clear()
         self.stats_text.clear()
         
+        # Get selected file types
+        selected_extensions = self.file_type_filter.currentText()
+        extensions = None if selected_extensions == "All" else [selected_extensions]
+        
         # Start scan in background
-        self.scan_thread = ScanWorker(directory, None)
+        self.scan_thread = ScanWorker(directory, extensions)
         self.scan_thread.finished.connect(self.scan_completed)
         self.scan_thread.status_update.connect(self.update_status)
         self.scan_thread.start()
@@ -183,6 +200,7 @@ class SecurityScannerGUI(QMainWindow):
         self.progress_timer.stop()
         self.progress_bar.setValue(100)
         self.scan_btn.setEnabled(True)
+        self.export_btn.setEnabled(True)
         self.status_label.setText("Scan completed")
         self.current_issues = issues
         
@@ -268,15 +286,33 @@ class SecurityScannerGUI(QMainWindow):
                 
     def filter_results(self):
         selected_severity = self.severity_filter.currentText()
+        selected_file_type = self.file_type_filter.currentText()
         
-        if selected_severity == "All":
-            self.update_details(self.current_issues)
-        else:
+        filtered_issues = self.current_issues
+        
+        if selected_severity != "All":
             filtered_issues = [
-                issue for issue in self.current_issues 
+                issue for issue in filtered_issues 
                 if issue.severity.value == selected_severity
             ]
-            self.update_details(filtered_issues)
+        
+        if selected_file_type != "All":
+            filtered_issues = [
+                issue for issue in filtered_issues 
+                if issue.file_type == selected_file_type
+            ]
+        
+        self.update_details(filtered_issues)
+
+    def export_results(self):
+        """Export scan results to a text file."""
+        options = QFileDialog.Options()
+        file_name, _ = QFileDialog.getSaveFileName(self, "Save Results", "", "Text Files (*.txt);;CSV Files (*.csv)", options=options)
+        if file_name:
+            with open(file_name, 'w') as f:
+                for issue in self.current_issues:
+                    f.write(f"{issue.file_path},{issue.line_number},{issue.severity.value},{issue.description}\n")
+            QMessageBox.information(self, "Export Successful", "Results exported successfully.")
 
 def main():
     app = QApplication(sys.argv)
